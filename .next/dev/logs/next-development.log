@@ -1,0 +1,74 @@
+[00:00:01.097] Server  LOG      ✓ Ready in 820ms
+[00:00:14.272] Server  WARN     ⚠ Cross origin request detected from 192.168.1.81 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+[00:00:14.358] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:30.337] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <RootLayout>
+                        <html
+                          lang="th"
+-                         __gchrome_remoteframetoken="bc4563b54b4068fffba622230710f0e8"
+                        >
+                          ...
+                            <div className="min-h-scre...">
+                              <div className="w-full max...">
+                                <p>
+                                <div className="bg-white r...">
+                                  <div>
+                                  <p>
+                                  <form
+                                    onSubmit={function handleSubmit}
+                                    className="space-y-4 mt-2"
+-                                   __gchrome_uniqueid="1"
+                                  >
+                                    <div>
+                                      <label>
+                                      <input
+                                        name="name"
+                                        required={true}
+                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-..."
+                                        placeholder="เช่น อภิสรา จันทวิเศษ"
+-                                       __gchrome_uniqueid="2"
+                                      >
+                                    <div>
+                                      <label>
+                                      <input
+                                        name="phone"
+                                        type="tel"
+                                        pattern="[0-9]{9,10}"
+                                        required={true}
+                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-..."
+                                        placeholder="เช่น 0812345678"
+-                                       __gchrome_uniqueid="3"
+                                      >
+                                      ...
+                                    ...
+                                  ...
+                                ...
+                  ...
+

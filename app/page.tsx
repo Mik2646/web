@@ -131,7 +131,7 @@ export default function RegisterPrizePage() {
     }
 
     if (!selectedProduct) {
-      setErrorMsg("กรุณาเลือกสินค้าที่ซื้อครับ (น้ำโสม/กลางใหญ่)");
+      setErrorMsg("กรุณาเลือกสาขาที่ซื้อครับ (น้ำโสม/กลางใหญ่)");
       return;
     }
 
@@ -290,7 +290,7 @@ export default function RegisterPrizePage() {
               {/* สินค้าที่ซื้อ */}
               <div>
                 <label className="block text-xs font-semibold text-gray-800 mb-2">
-                  สินค้าที่ซื้อในบิล <span className="text-red-500">*</span>
+                  สาขาที่ซื้อในบิล <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-4">
                   {/* น้ำโสม */}

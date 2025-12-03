@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 
 // theme color สำหรับ status bar / PWA
 export const viewport: Viewport = {
-  themeColor: "#29b2e3ff",
+  themeColor: "#ffffffff",
 };
 
 export default function RootLayout({

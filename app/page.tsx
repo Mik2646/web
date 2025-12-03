@@ -10,8 +10,8 @@ import {
   Users,
 } from "lucide-react";
 
-const GOOGLE_APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbwmMMqhMPWaODWlyOU4ytOmfJfttFxq0STHerr9zuyAcOaHwJEQtah6GUw4yC2qdqcq/exec";
+// ดึง URL จาก env (ถ้าไม่ตั้งจะเป็น string ว่าง)
+const GOOGLE_APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_GAS_URL || "";
 
 type FilePayload = {
   name: string;
@@ -23,11 +23,18 @@ type Winner = {
   row: number;
   timestamp: string | Date;
   name: string;
-  phone: string;
+  phone: string | number;
   imageUrl?: string;
+  product?: string;
 };
 
-// ย่อรูป + บีบอัด แล้วแปลงเป็น base64
+type Participant = {
+  name: string;
+  phone: string | number;
+  product?: string;
+};
+
+// ---------- helper ย่อรูป + แปลง base64 ----------
 async function compressImageToBase64(
   file: File,
   maxSize = 1200
@@ -77,16 +84,30 @@ async function compressImageToBase64(
   });
 }
 
+// =======================================================
+//  MAIN PAGE
+// =======================================================
 export default function RegisterPrizePage() {
+  // ❗ hooks ทั้งหมดต้องอยู่บนสุดเสมอ (ไม่มี if คั่นก่อน)
+  const [mounted, setMounted] = useState(false);
   const [billFile, setBillFile] = useState<File | null>(null);
   const [billPreview, setBillPreview] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState(false); // ส่งฟอร์ม
+  const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // ใช้ trigger ให้ LuckyDrawPanel รีโหลดจำนวนคนลงทะเบียน
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // กัน hydration mismatch ง่าย ๆ
+  if (!mounted) {
+    return <div className="min-h-screen bg-orange-50" />;
+  }
 
   const handleBillUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -99,8 +120,18 @@ export default function RegisterPrizePage() {
     e.preventDefault();
     setErrorMsg(null);
 
+    if (!GOOGLE_APPS_SCRIPT_URL) {
+      setErrorMsg("ยังไม่ได้ตั้งค่า URL ของ Google Apps Script");
+      return;
+    }
+
     if (!billFile) {
       setErrorMsg("กรุณาอัปโหลดรูปถ่ายบิลก่อนส่งฟอร์มครับ");
+      return;
+    }
+
+    if (!selectedProduct) {
+      setErrorMsg("กรุณาเลือกสินค้าที่ซื้อครับ (น้ำโสม/กลางใหญ่)");
       return;
     }
 
@@ -117,22 +148,21 @@ export default function RegisterPrizePage() {
       const payload = {
         name,
         phone,
+        product: selectedProduct,
         bill,
       };
 
       await fetch(GOOGLE_APPS_SCRIPT_URL, {
         method: "POST",
-        mode: "no-cors", // กัน CORS เวลาเรียกจากโดเมนเว็บเรา
+        mode: "no-cors",
         body: JSON.stringify(payload),
       });
 
-      // ถ้า fetch ไม่พัง ถือว่าส่งสำเร็จ
       form.reset();
       setBillFile(null);
       setBillPreview(null);
+      setSelectedProduct(null);
       setShowSuccess(true);
-
-      // ให้ LuckyDrawPanel รีเฟรชจำนวนคนลงทะเบียน
       setRefreshKey((k) => k + 1);
     } catch (err) {
       console.error(err);
@@ -144,7 +174,7 @@ export default function RegisterPrizePage() {
 
   return (
     <>
-      {/* Dialog ตอนโหลดส่งฟอร์ม */}
+      {/* dialog loading */}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl px-6 py-5 flex flex-col items-center gap-3 shadow-xl">
@@ -159,7 +189,7 @@ export default function RegisterPrizePage() {
         </div>
       )}
 
-      {/* Dialog ส่งสำเร็จ */}
+      {/* dialog success */}
       {showSuccess && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30">
           <div className="bg-white rounded-2xl px-6 py-6 flex flex-col items-center gap-3 shadow-xl max-w-sm mx-3">
@@ -180,7 +210,7 @@ export default function RegisterPrizePage() {
         </div>
       )}
 
-      {/* Dialog error จากฝั่งฟอร์ม */}
+      {/* dialog error */}
       {errorMsg && !loading && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30">
           <div className="bg-white rounded-2xl px-6 py-6 flex flex-col items-center gap-3 shadow-xl max-w-sm mx-3">
@@ -197,13 +227,14 @@ export default function RegisterPrizePage() {
         </div>
       )}
 
-      {/* เนื้อหาหลัก + คอมโพเนนต์สุ่มด้านล่าง */}
+      {/* MAIN */}
       <div className="min-h-screen bg-orange-50 flex justify-center px-4 py-10">
         <div className="w-full max-w-md space-y-4">
-          {/* การ์ดฟอร์มลงทะเบียน */}
-          <p className="text-xl font-black  justify-center flex items-center text-orange-500">
-                  ส.เจริญหลังคาเหล็กทุกบิลลุ้นรางวัล
-                </p>
+          <p className="text-xl font-black flex justify-center items-center text-orange-500">
+            ส.เจริญหลังคาเหล็กทุกบิลลุ้นรางวัล
+          </p>
+
+          {/* ฟอร์มลงทะเบียน */}
           <div className="bg-white rounded-3xl shadow-xl border border-orange-100 p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
@@ -220,7 +251,7 @@ export default function RegisterPrizePage() {
             </div>
 
             <p className="text-[11px] text-gray-600">
-              กรอกชื่อ เบอร์โทร และอัปโหลดรูปถ่ายบิลซื้อสินค้าของคุณให้ครบ
+              กรอกชื่อ เบอร์โทร สินค้า และอัปโหลดรูปถ่ายบิลซื้อสินค้าของคุณให้ครบ
               เพื่อร่วมลุ้นรางวัลจากเรา
             </p>
 
@@ -256,11 +287,62 @@ export default function RegisterPrizePage() {
                 </p>
               </div>
 
+              {/* สินค้าที่ซื้อ */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-800 mb-2">
+                  สินค้าที่ซื้อในบิล <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-4">
+                  {/* น้ำโสม */}
+                  <label
+                    className={`flex-1 rounded-xl border-2 p-3 flex items-center gap-2 cursor-pointer transition ${
+                      selectedProduct === "น้ำโสม"
+                        ? "border-red-500 bg-red-50/50"
+                        : "border-gray-200 bg-gray-50/50 hover:bg-gray-100"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="product"
+                      value="น้ำโสม"
+                      required
+                      checked={selectedProduct === "น้ำโสม"}
+                      onChange={() => setSelectedProduct("น้ำโสม")}
+                      className="h-4 w-4"
+                    />
+                    <span className="text-sm font-medium text-gray-800">
+                      น้ำโสม
+                    </span>
+                  </label>
+
+                  {/* กลางใหญ่ */}
+                  <label
+                    className={`flex-1 rounded-xl border-2 p-3 flex items-center gap-2 cursor-pointer transition ${
+                      selectedProduct === "กลางใหญ่"
+                        ? "border-red-500 bg-red-50/50"
+                        : "border-gray-200 bg-gray-50/50 hover:bg-gray-100"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="product"
+                      value="กลางใหญ่"
+                      required
+                      checked={selectedProduct === "กลางใหญ่"}
+                      onChange={() => setSelectedProduct("กลางใหญ่")}
+                      className="h-4 w-4"
+                    />
+                    <span className="text-sm font-medium text-gray-800">
+                      กลางใหญ่
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               {/* รูปบิล */}
               <div>
                 <label className="block text-xs font-semibold text-gray-800 mb-1">
-                  รูปถ่ายบิล / ใบเสร็จ{" "}
-                  <span className="text-red-500">*</span>
+                  รูปถ่ายบิล / ใบเสร็จ <span className="text-red-500">*</span>
                 </label>
 
                 <label className="border border-dashed border-orange-300 bg-orange-50/60 rounded-xl px-3 py-3 flex items-center gap-3 cursor-pointer hover:bg-orange-100">
@@ -312,36 +394,53 @@ export default function RegisterPrizePage() {
             </p>
           </div>
 
-          {/* คอมโพเนนต์สุ่มรางวัลด้านล่าง */}
-          <LuckyDrawPanel refreshKey={refreshKey} />
+          {/* แผงสุ่มรางวัล */}
+          <LuckyDrawPanel
+            refreshKey={refreshKey}
+            productOptions={["น้ำโสม", "กลางใหญ่"]}
+          />
         </div>
       </div>
     </>
   );
 }
 
-/**
- * คอมโพเนนต์ LuckyDrawPanel:
- * - โชว์จำนวนคนลงทะเบียน
- * - ปุ่มสุ่มรางวัล (มีเอฟเฟกต์หมุน)
- * - แสดงข้อมูลผู้โชคดี
- */
-function LuckyDrawPanel({ refreshKey }: { refreshKey: number }) {
+// =======================================================
+//  LUCKY DRAW PANEL
+// =======================================================
+function LuckyDrawPanel({
+  refreshKey,
+  productOptions,
+}: {
+  refreshKey: number;
+  productOptions: string[];
+}) {
   const [totalRegistered, setTotalRegistered] = useState<number | null>(null);
   const [loadingCount, setLoadingCount] = useState(false);
   const [loadingDraw, setLoadingDraw] = useState(false);
   const [winner, setWinner] = useState<Winner | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [drawingProduct, setDrawingProduct] = useState<string | null>(null);
+
+  const [registeredParticipants, setRegisteredParticipants] = useState<
+    Participant[]
+  >([]);
+  const [showList, setShowList] = useState(false);
+  const [loadingList, setLoadingList] = useState(false);
+
+  const gasUrl = GOOGLE_APPS_SCRIPT_URL;
 
   useEffect(() => {
+    if (!gasUrl) return;
     fetchCount();
+    fetchParticipants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey]);
+  }, [refreshKey, gasUrl]);
 
   const fetchCount = async () => {
     try {
       setLoadingCount(true);
-      const res = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=count`);
+      const res = await fetch(`${gasUrl}?action=count`);
       const data = await res.json();
       if (data.success) {
         setTotalRegistered(data.count ?? 0);
@@ -356,15 +455,53 @@ function LuckyDrawPanel({ refreshKey }: { refreshKey: number }) {
     }
   };
 
-  const handleDrawWinner = async () => {
+  const fetchParticipants = async () => {
+    try {
+      setLoadingList(true);
+      const res = await fetch(`${gasUrl}?action=list_participants`);
+      const data = await res.json();
+      if (data.success) {
+        const sortedParticipants = (data.participants || []).sort(
+          (a: Participant, b: Participant) =>
+            a.name.localeCompare(b.name, "th")
+        );
+        setRegisteredParticipants(sortedParticipants);
+      }
+    } catch (err) {
+      console.error("Error fetching participants list:", err);
+      setRegisteredParticipants([]);
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  const handleDrawWinner = async (product: string | null = null) => {
+    if (!gasUrl) {
+      setError("ยังไม่ได้ตั้งค่า URL ของ Google Apps Script");
+      return;
+    }
+
     setError(null);
     setWinner(null);
     setLoadingDraw(true);
+    setDrawingProduct(product);
+
+    let fetchUrl = `${gasUrl}?action=random`;
+    if (product) {
+      fetchUrl += `&product=${encodeURIComponent(product)}`;
+    }
+
     try {
-      const res = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=random`);
+      const res = await fetch(fetchUrl);
       const data = await res.json();
+
       if (!data.success) {
-        setError(data.message || "ยังไม่มีข้อมูลสำหรับสุ่มรางวัล");
+        setError(
+          data.message ||
+            `ยังไม่มีข้อมูลสำหรับสุ่มรางวัลสำหรับสินค้า: ${
+              product || "ทั้งหมด"
+            }`
+        );
         return;
       }
       setWinner(data.winner as Winner);
@@ -373,14 +510,16 @@ function LuckyDrawPanel({ refreshKey }: { refreshKey: number }) {
       setError("สุ่มรางวัลไม่สำเร็จ ลองใหม่อีกครั้งนะครับ");
     } finally {
       setLoadingDraw(false);
+      setDrawingProduct(null);
     }
   };
 
-  const disabledDraw = loadingDraw || !totalRegistered || totalRegistered <= 0;
+  const disabledDraw =
+    loadingDraw || !totalRegistered || totalRegistered <= 0 || !gasUrl;
 
   return (
     <div className="bg-white rounded-3xl shadow-md border border-orange-100 p-5 space-y-4">
-      {/* แถบบน */}
+      {/* header */}
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-orange-500 flex items-center gap-1">
@@ -401,59 +540,130 @@ function LuckyDrawPanel({ refreshKey }: { refreshKey: number }) {
         </div>
       </div>
 
-      {/* วงหมุน + ปุ่มสุ่ม */}
-      <div className="flex items-center gap-4">
-        {/* วงกลมหมุนตอนสุ่ม */}
-        <div className="flex-0">
-          <div className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-orange-100 via-orange-50 to-white border-2 border-dashed border-orange-300 flex items-center justify-center shadow-inner relative overflow-hidden">
-            <div
-              className={`w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center shadow-lg ${
-                loadingDraw ? "animate-spin" : ""
-              }`}
-            >
-              <Gift className="w-8 h-8 text-white" />
-            </div>
-            <div className="absolute top-1/2 -right-1 w-3 h-3 rounded-full bg-orange-500 shadow" />
-          </div>
-        </div>
+      {/* ปุ่มสุ่ม */}
+      <div className="space-y-4">
+        <p className="text-xs font-semibold text-gray-800">
+          กดปุ่มเพื่อสุ่มผู้โชคดีตามสินค้า:
+        </p>
 
-        {/* ปุ่ม + ข้อความ */}
-        <div className="flex-1 space-y-2">
-          <p className="text-xs font-semibold text-gray-800">
-            กดเพื่อสุ่มผู้โชคดีจากรายชื่อทั้งหมด
-          </p>
+        <div className="grid grid-cols-2 gap-3">
+          {productOptions.map((productName) => (
+            <button
+              key={productName}
+              type="button"
+              disabled={disabledDraw}
+              onClick={() => handleDrawWinner(productName)}
+              className="inline-flex items-center justify-center gap-2 w-full text-xs font-semibold px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              {loadingDraw && drawingProduct === productName ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  สุ่ม {productName}...
+                </>
+              ) : (
+                <>
+                  <Gift className="w-4 h-4" />
+                  สุ่มรางวัล {productName}
+                </>
+              )}
+            </button>
+          ))}
+
+          {/* ปุ่มสุ่มทั้งหมด */}
           <button
             type="button"
             disabled={disabledDraw}
-            onClick={handleDrawWinner}
-            className="inline-flex items-center justify-center gap-2 w-full text-xs font-semibold px-3 py-2 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => handleDrawWinner(null)}
+            className="inline-flex items-center justify-center gap-2 w-full text-xs font-semibold px-3 py-2 rounded-2xl bg-gray-500 text-white shadow hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition col-span-2"
           >
-            {loadingDraw ? (
+            {loadingDraw && drawingProduct === null ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                กำลังสุ่มหาผู้โชคดี...
+                กำลังสุ่มทั้งหมด...
               </>
             ) : (
               <>
                 <Gift className="w-4 h-4" />
-                สุ่มรางวัลตอนนี้
+                สุ่มรางวัลทั้งหมด
               </>
             )}
           </button>
-          <p className="text-[10px] text-gray-400">
-            * ทุกชื่อที่ลงทะเบียน (มีชื่อ+เบอร์) จะมีสิทธิ์ลุ้นเท่ากันทุกคน
-          </p>
         </div>
+
+        <p className="text-[10px] text-gray-400">
+          * ทุกชื่อที่ลงทะเบียน (มีชื่อ+เบอร์) จะมีสิทธิ์ลุ้นเท่ากันทุกคน
+        </p>
       </div>
 
-      {/* แสดงผู้โชคดี */}
+      {/* รายชื่อผู้ลงทะเบียน */}
+      <div className="pt-4 border-t border-gray-100">
+        <button
+          onClick={() => setShowList(!showList)}
+          className="w-full text-center text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 py-2 rounded-xl transition"
+        >
+          {showList
+            ? "ซ่อนรายชื่อผู้ลงทะเบียน"
+            : `แสดงรายชื่อผู้ลงทะเบียน (${registeredParticipants.length} คน)`}
+        </button>
+
+        {showList && (
+          <div className="mt-3 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-white/70">
+            {loadingList ? (
+              <div className="flex items-center justify-center text-xs text-gray-500 py-3">
+                <Loader2 className="w-3 h-3 animate-spin mr-2" />
+                กำลังโหลดรายชื่อ...
+              </div>
+            ) : registeredParticipants.length === 0 ? (
+              <p className="text-xs text-gray-500 text-center py-3">
+                ยังไม่มีผู้ลงทะเบียนในระบบ
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {registeredParticipants.map((p, index) => {
+                  const phoneStr = (p.phone ?? "").toString();
+                  const maskedPhone =
+                    phoneStr.length >= 6
+                      ? `${phoneStr.slice(0, 3)}xxx${phoneStr.slice(-3)}`
+                      : phoneStr;
+
+                  return (
+                    <li
+                      key={index}
+                      className="flex justify_between items-center text-[11px] border-b border-gray-100 pb-1 last:border-b-0"
+                    >
+                      <span className="font-medium text-gray-800">
+                        {p.name}
+                      </span>
+                      <span className="text-gray-500">
+                        {p.product && (
+                          <span className="mr-2 px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-semibold">
+                            {p.product}
+                          </span>
+                        )}
+                        ({maskedPhone})
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ผู้โชคดี */}
       {winner && (
         <div className="mt-2 border border-orange-100 rounded-2xl p-3 bg-orange-50/70 space-y-1">
           <p className="text-xs font-bold text-orange-700">
             🎉 ผู้โชคดีที่สุ่มได้
           </p>
           <p className="text-sm font-semibold text-gray-900">{winner.name}</p>
-          <p className="text-xs text-gray-700">เบอร์: {winner.phone}</p>
+          <p className="text-xs text-gray-700">
+            เบอร์: {(winner.phone ?? "").toString()}
+          </p>
+          <p className="text-xs text-gray-700">
+            สินค้า: {winner.product || "ไม่ระบุ"}
+          </p>
           {winner.imageUrl && (
             <div className="mt-1">
               <p className="text-[10px] text-gray-500 mb-0.5">

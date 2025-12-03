@@ -1,74 +1,65 @@
-[00:00:01.097] Server  LOG      ✓ Ready in 820ms
-[00:00:14.272] Server  WARN     ⚠ Cross origin request detected from 192.168.1.81 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+[00:00:00.788] Server  LOG      ✓ Ready in 565ms
+[00:00:09.906] Server  WARN     ⚠ Cross origin request detected from 192.168.1.81 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
 Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
-[00:00:14.358] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:30.337] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+[00:00:09.956] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:10.043] Browser ERROR   React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
 
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ RegisterPrizePage 1. useState                   useState
+2. useEffect                  useEffect
+3. undefined                  useState
 
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+[00:00:10.043] Browser ERROR   uncaughtError: Error: Rendered more hooks than during the previous render.
+[00:00:50.251] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:00:50.258] Server  LOG      ✓ Compiled in 167ms
+[00:00:50.644] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:03:25.353] Server  LOG      ✓ Compiled in 135ms
+[00:09:16.579] Server  LOG      ✓ Compiled in 257ms
+[00:09:19.544] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:15:43.981] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:15:47.905] Browser ERROR   uncaughtError: TypeError: p.phone.substring is not a function
+[00:16:05.595] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:16:09.932] Browser ERROR   uncaughtError: TypeError: p.phone.substring is not a function
+[00:16:20.041] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:16:47.989] Browser ERROR   uncaughtError: TypeError: p.phone.substring is not a function
+[00:17:19.250] Server  ERROR    ⨯ "The requested resource isn't a valid image for" "/logo.png" "received" null
+[00:18:11.932] Server  LOG      ✓ Compiled in 159ms
+[00:18:12.309] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:48.015] Server  LOG      ✓ Compiled in 272ms
+[00:22:48.608] Browser ERROR   React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
 
-%s%s https://react.dev/link/hydration-mismatch 
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ RegisterPrizePage 1. useState                   useState
+2. useEffect                  useEffect
+3. undefined                  useState
 
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <RootLayout>
-                        <html
-                          lang="th"
--                         __gchrome_remoteframetoken="bc4563b54b4068fffba622230710f0e8"
-                        >
-                          ...
-                            <div className="min-h-scre...">
-                              <div className="w-full max...">
-                                <p>
-                                <div className="bg-white r...">
-                                  <div>
-                                  <p>
-                                  <form
-                                    onSubmit={function handleSubmit}
-                                    className="space-y-4 mt-2"
--                                   __gchrome_uniqueid="1"
-                                  >
-                                    <div>
-                                      <label>
-                                      <input
-                                        name="name"
-                                        required={true}
-                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-..."
-                                        placeholder="เช่น อภิสรา จันทวิเศษ"
--                                       __gchrome_uniqueid="2"
-                                      >
-                                    <div>
-                                      <label>
-                                      <input
-                                        name="phone"
-                                        type="tel"
-                                        pattern="[0-9]{9,10}"
-                                        required={true}
-                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-..."
-                                        placeholder="เช่น 0812345678"
--                                       __gchrome_uniqueid="3"
-                                      >
-                                      ...
-                                    ...
-                                  ...
-                                ...
-                  ...
+[00:22:48.608] Browser ERROR   uncaughtError: Error: Rendered more hooks than during the previous render.
+[00:22:51.672] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:51.796] Browser ERROR   React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
 
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ RegisterPrizePage 1. useState                   useState
+2. useEffect                  useEffect
+3. undefined                  useState
+
+[00:22:51.796] Browser ERROR   uncaughtError: Error: Rendered more hooks than during the previous render.
+[00:22:53.371] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:53.478] Browser ERROR   React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ RegisterPrizePage 1. useState                   useState
+2. useEffect                  useEffect
+3. undefined                  useState
+
+[00:22:53.478] Browser ERROR   uncaughtError: Error: Rendered more hooks than during the previous render.
+[00:27:23.245] Server  LOG      ✓ Compiled in 261ms
+[00:27:23.253] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:27:23.960] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
